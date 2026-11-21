@@ -7,6 +7,8 @@ description: ブラウザーゲーム機能の体験、制約、受け入れ条�
 
 ユーザーの要求を `specs/<feature>/spec.md` へ整理する。
 
+開始前に `hooks.yml` の `before_spec`、完了前に `after_spec` を処理する。
+
 ## 手順
 
 1. 既存仕様、README、コード、ADRを確認する。

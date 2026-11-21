@@ -8,6 +8,8 @@ description: 実装をゲーム仕様、ADR、テスト、性能、ブラウザ�
 `spec.md`、`design.md`、ADR、`tasks.md` と実装を比較し、
 `verification.md` を作成する。
 
+開始前に `hooks.yml` の `before_verify`、完了前に `after_verify` を処理する。
+
 ## 検証範囲
 
 - 仕様IDごとの実装・テスト対応

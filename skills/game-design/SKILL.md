@@ -7,6 +7,8 @@ description: ゲーム仕様からScene、状態、入力、データ、性能�
 
 `spec.md` を読み、`design.md` と必要なADRを作成する。
 
+開始前に `hooks.yml` の `before_design`、完了前に `after_design` を処理する。
+
 ## 手順
 
 1. Scene、状態遷移、入力、物理、描画、音、UIの責務を整理する。

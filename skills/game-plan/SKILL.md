@@ -7,6 +7,8 @@ description: ゲーム仕様と設計を依存関係付きの実装計画とタ�
 
 `spec.md` と `design.md` を読み、`plan.md` と `tasks.md` を作成する。
 
+完了前に `hooks.yml` の `after_plan` を処理する。
+
 ## 手順
 
 1. 共有基盤、Scene、状態、入力、ロジック、UI、アセットの順で分解する。

@@ -7,6 +7,9 @@ description: 承認されたゲーム仕様、設計、ADR、tasksに従って�
 
 指定された `tasks.md` を依存順に実装する。
 
+開始前に `hooks.yml` の `before_implement`、各実装フェーズ完了後に
+`after_implement` を処理する。
+
 ## 原則
 
 - 未読の仕様やADRがある場合は先に読む。

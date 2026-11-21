@@ -43,6 +43,23 @@ docs/adr/
 - `game-implement`: tasksに従って実装
 - `game-verify`: 仕様・性能・ブラウザー挙動を検証
 
+## Hooks
+
+`hooks.yml` は工程前後の必須・任意Skillを宣言します。hookはsubprocessを
+実行せず、各工程のAgentが別Skillを呼び出すための制御データです。
+
+共有hookは次を対象にします。
+
+- 仕様前: プロジェクト文脈
+- 仕様後: 仕様レビュー
+- 設計前後: 技術文脈とADRレビュー
+- 計画後: 要件追跡・依存関係レビュー
+- 実装前後: preflightと検証
+- 検証前後: 検証範囲確定と証拠レビュー
+
+プロジェクト固有hookは共有hookを変更せず、親リポジトリの `.github/hooks.yml`
+へ追加します。
+
 ## Agents
 
 - `game-architect.agent.md`: 設計・ADRのレビュー

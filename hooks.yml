@@ -1,0 +1,39 @@
+schema_version: "1.0"
+
+hooks:
+  before_spec:
+    - skill: game-project-context
+      mode: required
+      description: Load project-specific constraints and the current game baseline
+  after_spec:
+    - skill: game-spec-review
+      mode: required
+      description: Check scope, acceptance criteria, edge cases, and measurable outcomes
+  before_design:
+    - skill: game-technical-context
+      mode: required
+      description: Load implementation and security constraints relevant to the design
+  after_design:
+    - skill: game-adr-review
+      mode: required
+      description: Review architecture decisions, alternatives, performance, and revisit conditions
+  after_plan:
+    - skill: game-plan-review
+      mode: required
+      description: Verify requirement traceability, dependencies, and test gates
+  before_implement:
+    - skill: game-implementation-preflight
+      mode: required
+      description: Verify clean inputs, approved ADRs, and the target task state
+  after_implement:
+    - skill: game-verify
+      mode: required
+      description: Run implementation, browser, performance, and specification checks
+  before_verify:
+    - skill: game-verification-context
+      mode: optional
+      prompt: Confirm the target browsers, devices, performance budget, and manual play checks
+  after_verify:
+    - skill: game-verification-review
+      mode: required
+      description: Reject unsupported pass claims and report remaining limitations
