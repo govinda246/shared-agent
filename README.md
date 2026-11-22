@@ -5,8 +5,11 @@
 ## 運用方針
 
 このリポジトリは各プロジェクトの `.github/shared` にGitサブモジュールとして
-追加します。プロジェクト固有の指示、Agent、Skillは親リポジトリの `.github`
-で保守し、共有する内容だけをここへ置きます。
+追加します。親リポジトリは `.github/agents` と合わせて
+`.github/shared/agents`、`.github/shared/skills` を直接検索対象にします。
+プロジェクト固有の指示、Agent、Skillは親リポジトリの `.github` で保守し、
+共有する内容だけをここへ置きます。共有Agentを通常のコマンド検索PATHへ
+追加しません。
 
 ## ワークフロー
 
@@ -62,6 +65,7 @@ docs/adr/
 
 ## Agents
 
+- `game-conductor.agent.md`: 依頼を仕様・設計・計画・実装・検証へ分類し、hookと専門Skill・Agentを統括する唯一の窓口
 - `game-architect.agent.md`: 設計・ADRのレビュー
 - `game-reviewer.agent.md`: 実装と検証のレビュー
 
