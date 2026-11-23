@@ -13,6 +13,6 @@
 
 ## Consequences
 
-## Performance and Game Experience Impact
+## Performance and User Experience Impact
 
 ## Revisit Conditions

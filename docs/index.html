@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Shared Game Agentのルーティング、Agent構成、Hook、導入方法を解説する初心者向けガイドです。"
+      content="汎用Shared Development Agentのルーティング、Agent構成、Hook、ドメインSkill、導入方法を解説する初心者向けガイドです。"
     />
-    <title>Shared Game Agent | ゲーム開発運用ガイド</title>
+    <title>Shared Development Agent | 汎用開発運用ガイド</title>
     <style>
       :root {
         color-scheme: light;
@@ -377,9 +377,9 @@
     <header>
       <div class="wrap">
         <div class="eyebrow">Shared Agent Guide</div>
-        <h1>ゲーム開発を、安く、堅く、追跡可能に。</h1>
+        <h1>開発を、安く、堅く、追跡可能に。</h1>
         <p class="hero-lead">
-          Shared Game Agent は、Copilot の呼び出し回数ではなく、
+          Shared Development Agent は、Copilot の呼び出し回数ではなく、
           1タスクを正しく完了するまでの総コストを下げるための運用パックです。
         </p>
         <nav aria-label="ページ内ナビゲーション">
@@ -412,7 +412,7 @@
           <article class="card">
             <span class="tag purple">03 Risk gated</span>
             <h3>危険な判断だけ独立レビュー</h3>
-            <p>状態、時間、Scene、入力、同期、性能の高リスク変更だけ分離します。</p>
+            <p>状態、ライフサイクル、同期、互換性、性能の高リスク変更だけ分離します。</p>
           </article>
         </div>
       </section>
@@ -426,17 +426,17 @@
         <div class="architecture" aria-label="Agent構成図">
           <div class="node">ユーザー</div>
           <div class="arrow" aria-hidden="true">↓</div>
-          <div class="node">game-conductor<br />工程判定 / 最終判断 / Task Packet</div>
+          <div class="node">conductor<br />工程判定 / 最終判断 / Task Packet</div>
           <div class="arrow" aria-hidden="true">↓</div>
           <div class="branches">
             <div class="node">Direct<br />小変更・検索・既読修正</div>
-            <div class="node">game-implementer<br />承認済み仕様のまとまった実装</div>
-            <div class="node">game-verifier<br />テスト・build・証拠収集</div>
+            <div class="node">implementer<br />承認済み仕様のまとまった実装</div>
+            <div class="node">verifier<br />テスト・build・証拠収集</div>
           </div>
           <div class="arrow" aria-hidden="true">↕</div>
           <div class="branches">
-            <div class="node">game-architect<br />設計・ADRレビュー</div>
-            <div class="node">game-reviewer<br />実装・検証レビュー</div>
+            <div class="node">architect<br />設計・ADRレビュー</div>
+            <div class="node">reviewer<br />実装・検証レビュー</div>
             <div class="node">高リスク時のみ<br />独立した判断者を起動</div>
           </div>
         </div>
@@ -488,7 +488,7 @@
             <ul class="list">
               <li>テスト、build、typecheck、lint</li>
               <li>仕様IDと実装・テストの対応</li>
-              <li>ブラウザー・入力の確認状況</li>
+              <li>ランタイム・ホスト・入力の確認状況</li>
               <li>手動確認を推測で合格にしない</li>
             </ul>
           </article>
@@ -496,9 +496,9 @@
             <span class="tag orange">Independent Review</span>
             <h3>高リスク・独立した第二判断</h3>
             <ul class="list">
-              <li>Scene、状態所有、状態遷移</li>
-              <li>時間、入力、同期、永続化</li>
-              <li>アセット失敗、性能、メモリ</li>
+              <li>状態所有、ライフサイクル、状態遷移</li>
+              <li>時間、並列処理、同期、永続化</li>
+              <li>互換性、外部連携、性能、メモリ</li>
               <li>ADRや再検討条件が必要</li>
             </ul>
           </article>
@@ -509,15 +509,15 @@
         <h2>Task Packet</h2>
         <p class="lead">会話履歴全体ではなく、必要な契約だけを実装担当へ渡します。</p>
         <div class="packet">
-          <pre>タスクID: HUD-003
-完了条件: 敵HP変化がHUDに反映され、0でバーが消える
+          <pre>タスクID: EXPORT-003
+完了条件: 選択中のアイテムを指定形式へエクスポートできる
 受け入れ条件: AC-12, AC-13
-編集可能: src/ui/Hud.ts, test/Hud.test.ts
-参照: specs/hud/spec.md#AC-12, design.md#event-boundary
-検証: npm test -- Hud.test.ts; npm run typecheck
-禁止: Combat stateの変更、外部依存追加
+編集可能: src/export/Exporter.ts, test/Exporter.test.ts
+参照: specs/export/spec.md#AC-12, design.md#file-boundary
+検証: npm test -- Exporter.test.ts; npm run typecheck
+禁止: 永続化形式の変更、外部依存追加
 試行上限: 2
-差し戻し: 入力仕様や状態所有の判断が必要になった場合</pre>
+差し戻し: 入力仕様や互換性判断が必要になった場合</pre>
         </div>
       </section>
 
@@ -578,15 +578,45 @@
               <tr>
                 <td>実装</td>
                 <td>Preflight</td>
-                <td>仕様・テスト・ブラウザー検証</td>
+                <td>仕様・テスト・ドメイン検証</td>
               </tr>
               <tr>
                 <td>検証</td>
-                <td>対象端末・性能予算（任意）</td>
+                <td>対象ランタイム・ホスト・性能予算（任意）</td>
                 <td>証拠と未実施項目レビュー</td>
               </tr>
             </tbody>
           </table>
+        </div>
+      </section>
+
+      <section>
+        <h2>ドメインはSkillで切り替える</h2>
+        <p class="lead">
+          共通の工程とルーティングは不変です。ドメイン固有の確認だけ、
+          プロジェクトまたはサブモジュールのSkillへ分離します。
+        </p>
+        <div class="route-grid">
+          <article class="card">
+            <span class="tag">2Dブラウザーゲーム</span>
+            <h3>game-context</h3>
+            <p>Scene、delta time、入力、ブラウザー、アセット、FPSを確認します。</p>
+          </article>
+          <article class="card">
+            <span class="tag green">DCCツール</span>
+            <h3>host-api-context / undo-redo</h3>
+            <p>ホストAPI、プラグイン互換性、アンドゥ履歴、アセット形式を確認します。</p>
+          </article>
+          <article class="card">
+            <span class="tag purple">ツールアプリ</span>
+            <h3>persistence-context / app-verification</h3>
+            <p>永続化、権限、アクセシビリティ、同期、再起動を確認します。</p>
+          </article>
+          <article class="card">
+            <span class="tag orange">ライブラリ</span>
+            <h3>public-api-context / compatibility-review</h3>
+            <p>公開API、型互換性、semver、シリアライズ、依存関係を確認します。</p>
+          </article>
         </div>
       </section>
 
@@ -649,7 +679,7 @@
 
     <footer>
       <p>
-        Shared Game Agent —
+        Shared Development Agent —
         <a href="https://github.com/govinda246/shared-agent">ソースと詳細READMEを見る</a>
       </p>
     </footer>

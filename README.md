@@ -1,6 +1,6 @@
-# Shared Game Agent
+# Shared Development Agent
 
-ブラウザーゲームの仕様、設計、実装、検証を段階化する共有 Copilot Agent
+仕様、設計、実装、検証を段階化する汎用 Copilot Agent
 パックです。目的は、モデルを常に細かい作業へ委任することではなく、
 **1タスクを正しく完了するまでの総コストを下げること**です。
 
@@ -12,7 +12,7 @@
 - 重要判断と定型実装を分離する
 - 独立レビューは高リスク変更だけへ起動する
 - テストだけで操作感、視覚、音を合格扱いしない
-- モデル名や料金を共有プロンプトへ固定しない
+- 複数人で同一のモデル経路を使えるよう、共有Agentへ既定モデルを固定する
 
 詳細な委任条件は [ROUTING.md](./ROUTING.md) に定義しています。
 
@@ -21,24 +21,30 @@
 ```text
                     ユーザー
                        |
-                 game-conductor
+                   conductor
                    /   |   \
             Direct  Implementer  Verifier
                      |            |
-              game-architect / game-reviewer
+               architect / reviewer
                     （高リスクのみ）
 ```
 
 | Agent | 主な責務 | 起動する条件 |
 | --- | --- | --- |
-| `game-conductor` | 工程判定、Task Packet、最終判断 | すべての依頼の窓口 |
-| `game-implementer` | 承認済み設計に沿った実装 | 範囲と受け入れ条件が明確で、出力がまとまっている |
-| `game-verifier` | テスト、build、仕様対応の証拠収集 | 実装済みで検証項目が明確 |
-| `game-architect` | 状態、時間、Scene、入力、ADRの独立設計レビュー | 変更困難性が高い、または選択肢が競合する |
-| `game-reviewer` | 実装と検証結果の独立レビュー | 高リスク変更、検証失敗、仕様逸脱の懸念 |
+| `conductor` | 工程判定、Task Packet、最終判断 | すべての依頼の窓口。カスタムAgent一覧に表示 |
+| `implementer` | 承認済み設計に沿った実装 | Conductorからのみ起動 |
+| `verifier` | テスト、build、仕様対応の証拠収集 | Conductorからのみ起動 |
+| `architect` | 状態、ライフサイクル、外部連携、ADRの独立設計レビュー | Conductorからのみ起動 |
+| `reviewer` | 実装と検証結果の独立レビュー | Conductorからのみ起動 |
 
-Agentごとのモデルは共有パックで固定しません。利用中の Copilot が対応する
-方法で親プロジェクトやユーザー設定から割り当ててください。
+Agentごとのモデルは共有パックで `model-policy: required` により固定します。
+既定はConductor、Architect、Reviewerが `MAI Code 2`、ImplementerとVerifierが
+`MAI Code 2 Flash` です。変更時は、親プロジェクトのモデル運用文書と変更履歴を
+更新し、共有Agentへ反映します。
+
+カスタムAgent一覧には `user-invocable: true` の `conductor` だけを表示します。
+その他のAgentは `user-invocable: false` とし、Conductorから委任する内部Agentとして
+使用します。
 
 ## 経路の選び方
 
@@ -50,7 +56,7 @@ Agentごとのモデルは共有パックで固定しません。利用中の Co
 | Direct | 数行修正、短い検索、既読ファイルの小変更 | 会話履歴を渡して1行直す |
 | Implementer | 入出力と対象ファイルが確定した機能実装 | 仕様を実装担当に決めさせる |
 | Verifier | 対象テスト、typecheck、仕様ID照合 | 手動確認できない操作を自動合格にする |
-| Independent Review | Scene、状態、時間、同期、性能への影響 | 単純な差分を同じ証拠で再確認する |
+| Independent Review | 状態、ライフサイクル、同期、互換性、性能への影響 | 単純な差分を同じ証拠で再確認する |
 
 ### 直接処理を優先する作業
 
@@ -60,16 +66,16 @@ Agentごとのモデルは共有パックで固定しません。利用中の Co
 - テスト結果の表示や短い要約
 - 委任準備より直接実行のほうが短い作業
 
-### 独立レビューが必要な変更
+### 汎用の独立レビューゲート
 
-- Sceneの生成・破棄、状態所有、状態遷移
-- delta time、固定タイムステップ
-- 入力の優先順位
-- pause/resume、focus喪失
-- 永続化、ネットワーク同期
-- アセット失敗
-- FPS、フレーム時間、メモリ、初回ロード
+- 状態所有、ライフサイクル、状態遷移
+- 時間処理、並列処理、同期、永続化
+- 入力方式、ホスト連携、外部プロセス
+- 性能、メモリ、ロード時間、互換性
 - ADRが必要な変更
+
+ドメイン固有のゲートは、プロジェクト固有SkillまたはHookへ追加します。
+ゲーム、DCCツール、ツールアプリ、ライブラリのために共有Agent本体を分岐させません。
 
 ## Task Packet
 
@@ -99,9 +105,9 @@ Agentごとのモデルは共有パックで固定しません。利用中の Co
 ## ワークフロー
 
 ```text
-ゲーム仕様
+機能仕様
     ↓ 受け入れ条件レビュー
-ゲーム設計・ADR
+設計・ADR
     ↓ 代替案・影響・再検討条件レビュー
 実装計画・タスク
     ↓ 依存関係・検証ゲートレビュー
@@ -129,13 +135,30 @@ docs/adr/
 
 | Skill | 役割 |
 | --- | --- |
-| `game-project-context` | プロジェクト固有の制約と現状を読む |
-| `game-spec` / `game-spec-review` | 仕様と受け入れ条件を作成・レビュー |
-| `game-technical-context` | 実装、入力、時間、アセット、性能の前提を抽出 |
-| `game-design` / `game-adr-review` | 設計とADRを作成・レビュー |
-| `game-plan` / `game-plan-review` | 依存関係、追跡、検証ゲートを計画・レビュー |
-| `game-implementation-preflight` / `game-implement` | 実装前提を確認し、承認済みタスクを実装 |
-| `game-verification-context` / `game-verify` / `game-verification-review` | 検証範囲と証拠を確認・レビュー |
+| `project-context` | プロジェクト固有の制約と現状を読む |
+| `spec` / `spec-review` | 仕様と受け入れ条件を作成・レビュー |
+| `technical-context` | 実装、入力、時間、アセット、性能の前提を抽出 |
+| `design` / `adr-review` | 設計とADRを作成・レビュー |
+| `plan` / `plan-review` | 依存関係、追跡、検証ゲートを計画・レビュー |
+| `implementation-preflight` / `implement` | 実装前提を確認し、承認済みタスクを実装 |
+| `verification-context` / `verify` / `verification-review` | 検証範囲と証拠を確認・レビュー |
+
+## ドメインSkillの切替
+
+共有Skillは汎用工程を提供します。ドメイン固有の確認は、対象リポジトリまたは
+サブモジュールの `.github/skills/` に追加し、Conductorが依頼に応じて併読します。
+
+例:
+
+| ドメイン | 追加Skillの例 |
+| --- | --- |
+| 2Dブラウザーゲーム | game-context、browser-verification、scene-safety |
+| DCCツール | host-api-context、undo-redo、plugin-verification |
+| ツールアプリ | persistence-context、permission-review、app-verification |
+| ライブラリ | public-api-context、compatibility-review、package-verification |
+
+共有Hookをドメインごとに分岐させず、共有の工程HookへドメインSkillを追加する形で
+親プロジェクト固有Hookを拡張します。
 
 ## Hooks
 
@@ -150,8 +173,8 @@ Hookはプロセスを自動起動せず、対応するAgentやSkillを呼ぶた
 | `after_design` | required | ADRレビュー |
 | `after_plan` | required | 追跡・依存関係・検証ゲート |
 | `before_implement` | required | 実装前提確認 |
-| `after_implement` | required | 仕様・テスト・ブラウザー検証 |
-| `before_verify` | optional | 対象ブラウザー、端末、性能予算 |
+| `after_implement` | required | 仕様・テスト・ドメイン検証 |
+| `before_verify` | optional | 対象ランタイム、ホスト、端末、性能予算 |
 | `after_verify` | required | 証拠と未実施項目のレビュー |
 
 必須Hookが失敗した場合、後続工程へ進みません。プロジェクト固有Hookは共有Hookを
@@ -173,13 +196,16 @@ Copilot の検索対象にします。
 
 ## モデル設定とコスト測定
 
-モデル固有のfrontmatterや料金体系はCopilotの実装ごとに変化するため、
-共有Agentへ恒久固定しません。利用者側で次を設定します。
+複数人で同じプロジェクトを管理するときの再現性を優先し、共有Agentの
+frontmatterへモデルと `model-policy: required` を明記します。既定は次の構成です。
 
-- Conductor/Directで使うモデル
-- `game-implementer` で使う軽量モデル
-- `game-architect` / `game-reviewer` で使う独立判断モデル
-- フォールバックと試行上限
+- Conductor/Direct、Architect/Reviewer: MAI Code 2
+- `implementer` / `verifier`: MAI Code 2 Flash
+- フォールバックではなく、必要時は共有設定を更新して新モデルへ切り替える
+
+Fusionなど別のルーティング方式を利用する場合も、共有Agentの
+`model` / `model-policy` を意図的に変更し、その理由、期間、解除条件を
+親プロジェクトのモデル運用文書へ記録します。
 
 代表タスクで少なくとも次を実測してください。
 
