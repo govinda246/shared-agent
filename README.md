@@ -193,6 +193,8 @@ Copilot の検索対象にします。
 
 ## GitHub Pages
 
+公開ガイド: https://govinda246.github.io/shared-agent/
+
 [`docs/index.html`](./docs/index.html) に、初心者向けの視覚的な運用ガイドを置きます。
 GitHub Actions が `main` への変更で静的サイトを公開します。外部ランタイムや
 Webアプリ依存はありません。
